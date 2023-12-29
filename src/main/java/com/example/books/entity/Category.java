@@ -20,7 +20,7 @@ public class Category implements Serializable {
     @Column(name = "id")
     private Long id;
 
-    private String name;
+    private String nameCategory;
 
     @OneToOne(mappedBy = "category")
     private Book book;

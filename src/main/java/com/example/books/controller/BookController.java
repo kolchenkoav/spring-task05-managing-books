@@ -1,16 +1,19 @@
 package com.example.books.controller;
 
 import com.example.books.entity.Book;
+import com.example.books.entity.Category;
+import com.example.books.model.UpsertBookRequest;
 import com.example.books.service.BookService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/book")
 @RequiredArgsConstructor
@@ -32,12 +35,16 @@ public class BookController {
         return ResponseEntity.ok(service.findByName(name));
     }
 
-//    @PostMapping
-//    public ResponseEntity<Book> createEntity(@RequestBody UpsertEntityRequest request) {
-//        //var newEntity = client.createEntity(request); // TODO createEntity
-//        var savedEntity = service.create(new Book());
-//        return ResponseEntity.status(HttpStatus.CREATED).body(savedEntity);
-//    }
+    @PostMapping
+    public ResponseEntity<Book> createEntity(@RequestBody UpsertBookRequest request) {
+        var savedEntity = new Book();
+        savedEntity.setNameBook(request.getName());
+        savedEntity.setAuthor(request.getAuthor());
+        Category category = new Category();
+        category.setNameCategory(request.getCategory());
+        savedEntity.setCategory(category);
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(savedEntity));
+    }
 
 //    @PutMapping("/{id}")
 //    public ResponseEntity<Book> updateEntity(@PathVariable Long id, @RequestBody UpsertEntityRequest request) {

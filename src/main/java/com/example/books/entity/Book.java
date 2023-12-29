@@ -19,10 +19,10 @@ public class Book implements Serializable {
     @Column(name = "id")
     private Long id;
 
-    private String name;
+    private String nameBook;
     private String author;
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "сategory_id", referencedColumnName = "id")
+    @JoinColumn(name = "category_id", referencedColumnName = "id")
     private Category category;
 }

@@ -5,7 +5,7 @@ import com.example.books.entity.Book;
 import com.example.books.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheConfig;
+
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Example;
@@ -18,11 +18,11 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@CacheConfig(cacheManager = "redisCacheManager")
+//@CacheConfig(cacheManager = "redisCacheManager")
 public class BookService {
     private final BookRepository repository;
 
-    @Cacheable(AppCacheProperties.CacheNames.DATABASE_ENTITIES)
+    //@Cacheable(AppCacheProperties.CacheNames.DATABASE_ENTITIES)
     public List<Book> findAll() {
         log.info("findAll");
         return repository.findAll();
@@ -37,7 +37,7 @@ public class BookService {
     @Cacheable(AppCacheProperties.CacheNames.DATABASE_ENTITIES_BY_NAME)
     public Book findByName(String name) {
         Book probe = new Book();
-        probe.setName(name);
+        probe.setNameBook(name);
         ExampleMatcher matcher = ExampleMatcher.matching()
                 .withIgnoreNullValues()
                 .withIgnorePaths("id", "date");
@@ -49,7 +49,7 @@ public class BookService {
     @CacheEvict(value = "databaseEntities", allEntries = true)
     public Book create(Book entity) {
         Book forSave = new Book();
-        forSave.setName(entity.getName());
+        forSave.setNameBook(entity.getNameBook());
 
         return repository.save(forSave);
     }
@@ -58,7 +58,7 @@ public class BookService {
     public Book update(Long id, Book entity) {
         Book entityForUpdate = findById(id);
 
-        entityForUpdate.setName(entity.getName());
+        entityForUpdate.setNameBook(entity.getNameBook());
 
         return repository.save(entityForUpdate);
     }
