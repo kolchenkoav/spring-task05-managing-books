@@ -1,9 +1,8 @@
 package com.example.books.controller;
 
 import com.example.books.entity.Book;
-import com.example.books.entity.Category;
 import com.example.books.model.UpsertBookRequest;
-import com.example.books.service.BookService;
+import com.example.books.service.BookServiceImpl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,10 +17,10 @@ import java.util.List;
 @RequestMapping("/api/v1/book")
 @RequiredArgsConstructor
 public class BookController {
-    private final BookService service;
+    private final BookServiceImpl service;
 
     @GetMapping
-    public ResponseEntity<List<Book>> entityList() {
+    public ResponseEntity<List<UpsertBookRequest>> entityList() {
         return ResponseEntity.ok(service.findAll());
     }
 
@@ -37,13 +36,7 @@ public class BookController {
 
     @PostMapping
     public ResponseEntity<Book> createEntity(@RequestBody UpsertBookRequest request) {
-        var savedEntity = new Book();
-        savedEntity.setNameBook(request.getName());
-        savedEntity.setAuthor(request.getAuthor());
-        Category category = new Category();
-        category.setNameCategory(request.getCategory());
-        savedEntity.setCategory(category);
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(savedEntity));
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
     }
 
 //    @PutMapping("/{id}")

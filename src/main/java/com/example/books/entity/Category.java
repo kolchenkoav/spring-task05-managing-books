@@ -1,27 +1,19 @@
 package com.example.books.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.io.Serializable;
 
 @Getter
 @Setter
-@AllArgsConstructor
-@NoArgsConstructor
 @Entity
-@Table(name = "category")
 public class Category implements Serializable {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String nameCategory;
 
-    @OneToOne(mappedBy = "category")
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "category")
     private Book book;
 }
