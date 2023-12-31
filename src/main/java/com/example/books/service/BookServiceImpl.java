@@ -2,8 +2,6 @@ package com.example.books.service;
 
 import com.example.books.entity.Book;
 import com.example.books.entity.Category;
-import com.example.books.entity.Employee;
-import com.example.books.model.EmployeeModel;
 import com.example.books.model.UpsertBookRequest;
 import com.example.books.repository.BookRepository;
 import com.example.books.repository.CategoryRepository;
@@ -12,14 +10,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 
 @Service
@@ -40,12 +34,8 @@ public class BookServiceImpl implements BookService {
         List<UpsertBookRequest> bookRequests = new ArrayList<>();
         if (!bookList.isEmpty()) {
             for (Book book : bookList) {
-                UpsertBookRequest empModel = new UpsertBookRequest();
-                empModel.setId(book.getId());
-                empModel.setName(book.getName());
-                empModel.setAuthor(book.getAuthor());
-                empModel.setNameCategory(book.getCategory().getNameCategory());
-                bookRequests.add(empModel);
+                UpsertBookRequest bookRequest = upsertBookRequestFromBook(book);
+                bookRequests.add(bookRequest);
             }
         } else {
             log.warn("bookRequests is empty");
@@ -55,22 +45,39 @@ public class BookServiceImpl implements BookService {
 
     @Override
     //@Cacheable(cacheNames = AppCacheProperties.CacheNames.DATABASE_ENTITIES_BY_ID, key = "#id")
-    public Book findById(Long id) {
+    public UpsertBookRequest findById(Long id) {
         log.info("findById {}", id);
-        return repository.findById(id).orElseThrow();
+        Book book = repository.findById(id).orElseThrow();
+        return upsertBookRequestFromBook(book);
+    }
+
+    private UpsertBookRequest upsertBookRequestFromBook(Book book) {
+        UpsertBookRequest bookRequest = new UpsertBookRequest();
+        bookRequest.setId(book.getId());
+        bookRequest.setName(book.getName());
+        bookRequest.setAuthor(book.getAuthor());
+        bookRequest.setNameCategory(book.getCategory().getNameCategory());
+        return bookRequest;
     }
 
     @Override
     //@Cacheable(AppCacheProperties.CacheNames.DATABASE_ENTITIES_BY_NAME)
-    public Book findByName(String name) {
-        Book probe = new Book();
-        probe.setName(name);
-        ExampleMatcher matcher = ExampleMatcher.matching()
-                .withIgnoreNullValues()
-                .withIgnorePaths("id", "date");
-        Example<Book> example = Example.of(probe, matcher);
+    public List<UpsertBookRequest> findByName(String name) {
         log.info("findByName {}", name);
-        return repository.findOne(example).orElseThrow();
+        List<UpsertBookRequest> bookRequests = new ArrayList<>();
+
+        List<Book> bookList = repository.findByName(name).stream().toList();
+
+        if (!bookList.isEmpty()) {
+            for (Book book : bookList) {
+                UpsertBookRequest bookRequest = upsertBookRequestFromBook(book);
+                bookRequests.add(bookRequest);
+            }
+        } else {
+            log.warn("bookRequests is empty");
+        }
+
+        return bookRequests;
     }
 
     @Override
@@ -80,28 +87,31 @@ public class BookServiceImpl implements BookService {
 
         Category category = new Category();
         category.setNameCategory(request.getNameCategory());
-        log.info(">>>> "+category.getNameCategory());
 
         Book savedEntity = new Book();
         savedEntity.setName(request.getName());
         savedEntity.setAuthor(request.getAuthor());
         savedEntity.setCategory(category);
 
-        //category.setBook(savedEntity);
-
         Book u = repository.save(savedEntity);
 
         category.setNameCategory(request.getNameCategory());
-        //
         return u;
     }
 
+
     @Override
     //@CacheEvict(cacheNames = AppCacheProperties.CacheNames.DATABASE_ENTITIES_BY_ID, key = "#id", beforeInvocation = true)
-    public Book update(Long id, Book entity) {
-        Book entityForUpdate = findById(id);
+    public Book update(Long id, UpsertBookRequest request) {
+        Book entityForUpdate = repository.findById(id).orElseThrow();
+        log.info("update Book - Category");
 
-        entityForUpdate.setName(entity.getName());
+        Category category = entityForUpdate.getCategory();
+        category.setNameCategory(request.getNameCategory());
+
+        entityForUpdate.setName(request.getName());
+        entityForUpdate.setAuthor(request.getAuthor());
+        entityForUpdate.setCategory(category);
 
         return repository.save(entityForUpdate);
     }
@@ -110,6 +120,28 @@ public class BookServiceImpl implements BookService {
     //@CacheEvict(cacheNames = AppCacheProperties.CacheNames.DATABASE_ENTITIES_BY_ID, key = "#id", beforeInvocation = true)
     public void deleteById(Long id) {
         repository.deleteById(id);
+    }
+
+    @Override
+    public Book findByAuthor(String author) {
+        return repository.findByAuthor(author);
+    }
+
+
+    public List<UpsertBookRequest> findByCategory(String category) {
+        List<UpsertBookRequest> bookRequests = new ArrayList<>();
+        List<Book> bookList = categoryRepository.findByNameCategory(category).stream().map(Category::getBook).toList();
+
+        if (!bookList.isEmpty()) {
+            for (Book book : bookList) {
+                UpsertBookRequest bookRequest = upsertBookRequestFromBook(book);
+                bookRequests.add(bookRequest);
+            }
+        } else {
+            log.warn("bookRequests is empty");
+        }
+
+        return bookRequests;
     }
 
 }

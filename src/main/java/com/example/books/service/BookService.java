@@ -7,9 +7,14 @@ import java.util.List;
 
 public interface BookService {
     List<UpsertBookRequest> findAll();
-    Book findById(Long id);
-    Book findByName(String name);
+    UpsertBookRequest findById(Long id);
+    List<UpsertBookRequest> findByName(String name);
     Book create(UpsertBookRequest request);
-    Book update(Long id, Book entity);
+
+    //@CacheEvict(cacheNames = AppCacheProperties.CacheNames.DATABASE_ENTITIES_BY_ID, key = "#id", beforeInvocation = true)
+    Book update(Long id, UpsertBookRequest request);
+
     void deleteById(Long id);
+
+    Book findByAuthor(String author);
 }
