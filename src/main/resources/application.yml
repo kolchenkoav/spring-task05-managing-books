@@ -18,18 +18,18 @@ spring:
 
 app:
   redis:
-    enable: false
+    enable: true
 
   cache:
     cacheType: REDIS
     cache-names:
-      - databaseEntities
-      - databaseEntityByName
-      - databaseEntityById
+      - bookByNameAndAuthor
+      - booksByCategory
+      - bookById
     caches:
-      databaseEntities:
-        expiry: 10m
-      databaseEntityByName:
-        expiry: 10m
-      databaseEntityById:
-        expiry: 10m
+      bookByNameAndAuthor:
+        expiry: 1m
+      booksByCategory:
+        expiry: 1m
+      bookById:
+        expiry: 1m

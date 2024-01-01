@@ -19,24 +19,10 @@ import java.util.List;
 public class BookController {
     private final BookServiceImpl service;
 
-    @GetMapping
-    public ResponseEntity<List<UpsertBookRequest>> bookList() {
-        return ResponseEntity.ok(service.findAll());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<UpsertBookRequest> bookById(@PathVariable Long id) {
-        return ResponseEntity.ok(service.findById(id));
-    }
-
-    @GetMapping("/name/{name}")
-    public ResponseEntity<List<UpsertBookRequest>> bookByName(@PathVariable String name) {
-        return ResponseEntity.ok(service.findByName(name));
-    }
-
-    @GetMapping("/author/{author}")
-    public ResponseEntity<Book> bookByAuthor(@PathVariable String author) {
-        return ResponseEntity.ok(service.findByAuthor(author));
+    @GetMapping("{name}/{author}")
+    public ResponseEntity<UpsertBookRequest> bookByNameAndAuthor(@PathVariable String name,
+                                                                 @PathVariable String author) {
+        return ResponseEntity.ok(service.findByNameAndAuthor(name, author));
     }
 
     @GetMapping("/category/{category}")
@@ -45,19 +31,24 @@ public class BookController {
     }
 
     @PostMapping
-    public ResponseEntity<Book> createEntity(@RequestBody UpsertBookRequest request) {
+    public ResponseEntity<UpsertBookRequest> createBook(@RequestBody UpsertBookRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Book> updateEntity(@PathVariable Long id, @RequestBody UpsertBookRequest request) {
+    public ResponseEntity<UpsertBookRequest> updateBook(@PathVariable Long id, @RequestBody UpsertBookRequest request) {
         var updatedDbEntity = service.update(id, request);
         return ResponseEntity.ok(updatedDbEntity);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Book> deleteEntityById(@PathVariable Long id) {
+    public ResponseEntity<Book> deleteBookById(@PathVariable Long id) {
         service.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/init")
+    public ResponseEntity<List<UpsertBookRequest>> initBookList() {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.initBookList());
     }
 }

@@ -23,10 +23,9 @@ public class AppCacheProperties {
     }
 
     public static final class CacheNames {
-        public static final String DATABASE_ENTITIES = "databaseEntities";
-        public static final String DATABASE_ENTITIES_BY_ID = "databaseEntityById";
-        public static final String DATABASE_ENTITIES_BY_NAME = "databaseEntityByName";
-
+        public static final String BOOK_BY_NAME_AND_AUTHOR = "bookByNameAndAuthor";
+        public static final String BOOKS_BY_CATEGORY = "booksByCategory";
+        public static final String BOOK_BY_ID = "bookById";
         private CacheNames() {}
     }
 
