@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -68,12 +69,14 @@ public class BookServiceImpl implements BookService {
         return request;
     }
 
-
     @Override
-    @CacheEvict(cacheNames = AppCacheProperties.CacheNames.BOOK_BY_ID, key = "#id", beforeInvocation = true)
+    //@CacheEvict(cacheNames = AppCacheProperties.CacheNames.BOOK_BY_ID, key = "#id", beforeInvocation = true)
+    @Caching(evict = {@CacheEvict(value = AppCacheProperties.CacheNames.BOOK_BY_NAME_AND_AUTHOR, beforeInvocation = true),
+            @CacheEvict(value = AppCacheProperties.CacheNames.BOOKS_BY_CATEGORY, allEntries = true, beforeInvocation = true),
+            @CacheEvict(value = AppCacheProperties.CacheNames.BOOK_BY_ID, key = "#id", beforeInvocation = true)})
     public UpsertBookRequest update(Long id, UpsertBookRequest request) {
         Book entityForUpdate = repository.findById(id).orElseThrow();
-        log.info("update Book - Category");
+        log.info("Update book id:{} request: {}", id, request);
 
         Category category = entityForUpdate.getCategory();
         category.setNameCategory(request.getNameCategory());
@@ -111,8 +114,8 @@ public class BookServiceImpl implements BookService {
         List<Book> bookList = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             Book savedEntity = new Book();
-            savedEntity.setName("Name" + (i+1));
-            savedEntity.setAuthor("Author" + (i+1));
+            savedEntity.setName("Name" + (i + 1));
+            savedEntity.setAuthor("Author" + (i + 1));
 
             Category category = new Category();
             category.setNameCategory((i < 5) ? "Категория 1" : "Категория 2");

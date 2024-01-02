@@ -28,8 +28,8 @@ app:
       - bookById
     caches:
       bookByNameAndAuthor:
-        expiry: 1m
+        expiry: 10m
       booksByCategory:
-        expiry: 1m
+        expiry: 10m
       bookById:
-        expiry: 1m
+        expiry: 10m
