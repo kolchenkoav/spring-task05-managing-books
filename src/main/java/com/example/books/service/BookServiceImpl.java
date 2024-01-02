@@ -12,6 +12,8 @@ import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -29,7 +31,7 @@ public class BookServiceImpl implements BookService {
     @Cacheable(value = AppCacheProperties.CacheNames.BOOK_BY_NAME_AND_AUTHOR, key = "#name + #author")
     public UpsertBookRequest findByNameAndAuthor(String name, String author) {
         log.info("findByNameAndAuthor name: {}  author: {}", name, author);
-        Book book = repository.findByNameAndAuthor(name, author);
+        Book book = repository.findByNameAndAuthor(name, author).orElseThrow().stream().toList().getFirst();
         return upsertBookRequestFromBook(book);
     }
 
@@ -37,9 +39,21 @@ public class BookServiceImpl implements BookService {
     @Cacheable(value = AppCacheProperties.CacheNames.BOOKS_BY_CATEGORY, key = "#category")
     public List<UpsertBookRequest> findByCategory(String category) {
         log.info("findByCategory category: {}", category);
-        List<UpsertBookRequest> bookRequests = new ArrayList<>();
-        List<Book> bookList = categoryRepository.findByNameCategory(category).stream().map(Category::getBook).toList();
+        //===
+        Book probe = new Book();
+        Category category1 = new Category();
+        category1.setNameCategory(category);
+        probe.setCategory(category1);
 
+        ExampleMatcher matcher = ExampleMatcher.matching()
+                .withIgnoreNullValues()
+                .withIgnorePaths("id", "name", "author");
+
+        Example<Book> example = Example.of(probe, matcher);
+
+        List<UpsertBookRequest> bookRequests = new ArrayList<>();
+
+        List<Book> bookList = repository.findAll(example);
         if (!bookList.isEmpty()) {
             for (Book book : bookList) {
                 UpsertBookRequest bookRequest = upsertBookRequestFromBook(book);
@@ -48,13 +62,27 @@ public class BookServiceImpl implements BookService {
         } else {
             log.warn("bookList is empty");
         }
+//
+//        List<UpsertBookRequest> bookRequests = new ArrayList<>();
+//        List<Book> bookList = categoryRepository.findByNameCategory(category).stream().map(Category::getBook).toList();
+//
+//        if (!bookList.isEmpty()) {
+//            for (Book book : bookList) {
+//
+//            }
+//        } else {
+//            log.warn("bookList is empty");
+//        }
         return bookRequests;
     }
 
     @Override
-    @CacheEvict(value = "databaseEntities", allEntries = true)
+//    @Caching(evict = {@CacheEvict(value = AppCacheProperties.CacheNames.BOOK_BY_NAME_AND_AUTHOR, allEntries = true, beforeInvocation = true),
+//            @CacheEvict(value = AppCacheProperties.CacheNames.BOOKS_BY_CATEGORY, allEntries = true, beforeInvocation = true)})
+    @CacheEvict(cacheNames = AppCacheProperties.CacheNames.BOOK_BY_ID, key = "#id", beforeInvocation = true)
     public UpsertBookRequest create(UpsertBookRequest request) {
         log.info("create Book - Category");
+
 
         Category category = new Category();
         category.setNameCategory(request.getNameCategory());
@@ -70,10 +98,10 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    //@CacheEvict(cacheNames = AppCacheProperties.CacheNames.BOOK_BY_ID, key = "#id", beforeInvocation = true)
-    @Caching(evict = {@CacheEvict(value = AppCacheProperties.CacheNames.BOOK_BY_NAME_AND_AUTHOR, beforeInvocation = true),
-            @CacheEvict(value = AppCacheProperties.CacheNames.BOOKS_BY_CATEGORY, allEntries = true, beforeInvocation = true),
-            @CacheEvict(value = AppCacheProperties.CacheNames.BOOK_BY_ID, key = "#id", beforeInvocation = true)})
+//    @Caching(evict = {@CacheEvict(value = AppCacheProperties.CacheNames.BOOK_BY_NAME_AND_AUTHOR, allEntries = true, beforeInvocation = true),
+//            @CacheEvict(value = AppCacheProperties.CacheNames.BOOKS_BY_CATEGORY, allEntries = true, beforeInvocation = true),
+//            @CacheEvict(value = AppCacheProperties.CacheNames.BOOK_BY_ID, key = "#id", beforeInvocation = true)})
+    @CacheEvict(cacheNames = AppCacheProperties.CacheNames.BOOK_BY_ID, key = "#id", beforeInvocation = true)
     public UpsertBookRequest update(Long id, UpsertBookRequest request) {
         Book entityForUpdate = repository.findById(id).orElseThrow();
         log.info("Update book id:{} request: {}", id, request);
