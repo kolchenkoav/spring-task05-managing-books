@@ -5,7 +5,7 @@ import com.example.books.entity.Book;
 import com.example.books.entity.Category;
 import com.example.books.model.UpsertBookRequest;
 import com.example.books.repository.BookRepository;
-import com.example.books.repository.CategoryRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheConfig;
@@ -25,7 +25,6 @@ import java.util.List;
 @CacheConfig(cacheManager = "redisCacheManager")
 public class BookServiceImpl implements BookService {
     private final BookRepository repository;
-    private final CategoryRepository categoryRepository;
 
     @Override
     @Cacheable(value = AppCacheProperties.CacheNames.BOOK_BY_NAME_AND_AUTHOR, key = "#name + #author")
@@ -39,7 +38,6 @@ public class BookServiceImpl implements BookService {
     @Cacheable(value = AppCacheProperties.CacheNames.BOOKS_BY_CATEGORY, key = "#category")
     public List<UpsertBookRequest> findByCategory(String category) {
         log.info("findByCategory category: {}", category);
-        //===
         Book probe = new Book();
         Category category1 = new Category();
         category1.setNameCategory(category);
@@ -62,27 +60,14 @@ public class BookServiceImpl implements BookService {
         } else {
             log.warn("bookList is empty");
         }
-//
-//        List<UpsertBookRequest> bookRequests = new ArrayList<>();
-//        List<Book> bookList = categoryRepository.findByNameCategory(category).stream().map(Category::getBook).toList();
-//
-//        if (!bookList.isEmpty()) {
-//            for (Book book : bookList) {
-//
-//            }
-//        } else {
-//            log.warn("bookList is empty");
-//        }
         return bookRequests;
     }
 
     @Override
-//    @Caching(evict = {@CacheEvict(value = AppCacheProperties.CacheNames.BOOK_BY_NAME_AND_AUTHOR, allEntries = true, beforeInvocation = true),
-//            @CacheEvict(value = AppCacheProperties.CacheNames.BOOKS_BY_CATEGORY, allEntries = true, beforeInvocation = true)})
-    @CacheEvict(cacheNames = AppCacheProperties.CacheNames.BOOK_BY_ID, key = "#id", beforeInvocation = true)
+    @Caching(evict = {@CacheEvict(value = AppCacheProperties.CacheNames.BOOK_BY_NAME_AND_AUTHOR, key = "#request.name + #request.author", beforeInvocation = true),
+            @CacheEvict(value = AppCacheProperties.CacheNames.BOOKS_BY_CATEGORY, key = "#request.nameCategory", beforeInvocation = true)})
     public UpsertBookRequest create(UpsertBookRequest request) {
         log.info("create Book - Category");
-
 
         Category category = new Category();
         category.setNameCategory(request.getNameCategory());
@@ -98,10 +83,8 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-//    @Caching(evict = {@CacheEvict(value = AppCacheProperties.CacheNames.BOOK_BY_NAME_AND_AUTHOR, allEntries = true, beforeInvocation = true),
-//            @CacheEvict(value = AppCacheProperties.CacheNames.BOOKS_BY_CATEGORY, allEntries = true, beforeInvocation = true),
-//            @CacheEvict(value = AppCacheProperties.CacheNames.BOOK_BY_ID, key = "#id", beforeInvocation = true)})
-    @CacheEvict(cacheNames = AppCacheProperties.CacheNames.BOOK_BY_ID, key = "#id", beforeInvocation = true)
+    @Caching(evict = {@CacheEvict(value = AppCacheProperties.CacheNames.BOOK_BY_NAME_AND_AUTHOR, key = "#request.name + #request.author", beforeInvocation = true),
+            @CacheEvict(value = AppCacheProperties.CacheNames.BOOKS_BY_CATEGORY, key = "#request.nameCategory", beforeInvocation = true)})
     public UpsertBookRequest update(Long id, UpsertBookRequest request) {
         Book entityForUpdate = repository.findById(id).orElseThrow();
         log.info("Update book id:{} request: {}", id, request);
@@ -118,7 +101,9 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    @CacheEvict(cacheNames = AppCacheProperties.CacheNames.BOOK_BY_ID, key = "#id", beforeInvocation = true)
+    //@CacheEvict(cacheNames = AppCacheProperties.CacheNames.BOOK_BY_ID, key = "#id", beforeInvocation = true)
+    @Caching(evict = {@CacheEvict(value = AppCacheProperties.CacheNames.BOOK_BY_NAME_AND_AUTHOR, allEntries = true, beforeInvocation = true),
+            @CacheEvict(value = AppCacheProperties.CacheNames.BOOKS_BY_CATEGORY, allEntries = true, beforeInvocation = true)})
     public void deleteById(Long id) {
         repository.deleteById(id);
     }
